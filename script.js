@@ -1,6 +1,4 @@
 
-"use strict";
-
 const $ = (id) => document.getElementById(id);
 
 const samples = {
@@ -9,110 +7,156 @@ const samples = {
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.print("Enter a number: ");
+
+        System.out.print("Enter array size: ");
         int n = sc.nextInt();
 
-        for (int i = 1; i <= n; i++) {
-            System.out.println(i);
+        int[] arr = new int[n];
+        int sum = 0;
+
+        for (int i = 0; i < n; i++) {
+            arr[i] = sc.nextInt();
+            sum += arr[i];
         }
+
+        System.out.println("Sum = " + sum);
         sc.close();
     }
 }`,
-  python: `n = int(input("Enter a number: "))
+  python: `n = int(input("Enter array size: "))
+arr = list(map(int, input("Enter numbers: ").split()))
 
-for i in range(1, n + 1):
-    print(i)`,
+total = 0
+for number in arr:
+    total += number
+
+print("Sum =", total)`,
   c: `#include <stdio.h>
 
 int main(void) {
-    int n;
-    printf("Enter a number: ");
+    int n, arr[100], sum = 0;
+
+    printf("Enter array size: ");
     scanf("%d", &n);
 
-    for (int i = 1; i <= n; i++) {
-        printf("%d\\n", i);
+    if (n < 1 || n > 100) {
+        printf("Invalid size\\n");
+        return 1;
     }
+
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &arr[i]);
+        sum += arr[i];
+    }
+
+    printf("Sum = %d\\n", sum);
     return 0;
 }`,
   cpp: `#include <iostream>
 using namespace std;
 
 int main() {
-    int n;
-    cout << "Enter a number: ";
+    int n, sum = 0;
     cin >> n;
 
-    for (int i = 1; i <= n; i++) {
-        cout << i << endl;
+    for (int i = 0; i < n; i++) {
+        int value;
+        cin >> value;
+        sum += value;
     }
+
+    cout << "Sum = " << sum << endl;
     return 0;
 }`,
-  javascript: `const n = 5;
+  javascript: `const numbers = [10, 20, 30, 40, 50];
+let sum = 0;
 
-for (let i = 1; i <= n; i++) {
-    console.log(i);
-}`
-};
-
-const languageNames = {
-  java: "Java",
-  python: "Python",
-  c: "C",
-  cpp: "C++",
-  javascript: "JavaScript"
-};
-
-function getCode() {
-  return $("codeInput").value;
+for (const number of numbers) {
+    sum += number;
 }
 
+console.log("Sum =", sum);`
+};
+
+const historyKey = "codedna-history-v1";
+
 function getLanguage() {
-  return $("languageSelect").value;
+  return $("languageSelect")?.value || "java";
+}
+
+function getCode() {
+  return $("codeInput")?.value || "";
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function setStatus(message, isError = false) {
+  const status = $("runStatus");
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = isError ? "#ff7272" : "#a7f3d0";
 }
 
 function updateEditor() {
   const code = getCode();
   const lines = code.split("\n").length;
 
-  $("lineNumbers").textContent = Array.from(
-    { length: lines }, (_, i) => i + 1
-  ).join("\n");
+  if ($("lineNumbers")) {
+    $("lineNumbers").textContent =
+      Array.from({ length: lines }, (_, i) => i + 1).join("\n");
+  }
 
-  $("lineCount").textContent = `${lines} line${lines === 1 ? "" : "s"}`;
-  $("characterCount").textContent = `${code.length} characters`;
+  if ($("lineCount")) $("lineCount").textContent = `${lines} lines`;
+  if ($("characterCount")) {
+    $("characterCount").textContent = `${code.length} characters`;
+  }
 
-  const extensions = {
-    java: "Main.java",
-    python: "main.py",
-    c: "main.c",
-    cpp: "main.cpp",
-    javascript: "main.js"
+  const extension = {
+    java: "java",
+    python: "py",
+    c: "c",
+    cpp: "cpp",
+    javascript: "js"
   };
 
-  $("fileName").textContent = extensions[getLanguage()] || "code.txt";
+  if ($("fileName")) {
+    $("fileName").textContent = `main.${extension[getLanguage()] || "txt"}`;
+  }
 }
 
-function showOutput(message, isError = false) {
+function addOutput(text, append = false) {
   const output = $("outputText");
-  output.textContent = message;
-  output.style.display = "block";
-  output.style.color = isError ? "#fca5a5" : "#b9f6c8";
+  if (!output) return;
 
   const welcome = document.querySelector(".terminal-welcome");
   if (welcome) welcome.style.display = "none";
+
+  output.textContent = append
+    ? `${output.textContent}\n${text}`
+    : String(text);
+
+  if ($("executionStatus")) {
+    $("executionStatus").textContent = "Finished";
+  }
 }
 
 function clearOutput() {
-  $("outputText").textContent = "";
-  $("outputText").style.display = "none";
-
+  if ($("outputText")) $("outputText").textContent = "";
   const welcome = document.querySelector(".terminal-welcome");
-  if (welcome) welcome.style.display = "block";
-
-  $("executionStatus").textContent = "No execution yet";
+  if (welcome) welcome.style.display = "";
+  if ($("executionStatus")) $("executionStatus").textContent = "Ready";
+  setStatus("Ready");
 }
 
-function fingerprint(code) {
+function hashCode(code) {
   let hash = 2166136261;
 
   for (let i = 0; i < code.length; i++) {
@@ -123,240 +167,303 @@ function fingerprint(code) {
   return (hash >>> 0).toString(16).toUpperCase().padStart(8, "0");
 }
 
-function removeCommentsAndStrings(code, language) {
-  let text = code;
+function estimateComplexity(code) {
+  const text = code.toLowerCase();
+  const loops = (text.match(/\b(for|while|foreach)\b/g) || []).length;
+  const nestedLoop = /\b(for|while)\b[\s\S]{0,300}\b(for|while)\b/.test(text);
+  const recursion = /\b([a-z_]\w*)\s*\([^;]*\)[\s\S]{0,200}\b\1\s*\(/i.test(code);
+  const sort = /\.sort\s*\(|sort\s*\(/i.test(code);
 
-  text = text.replace(
-    /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/gs,
-    " "
-  );
-
-  text = text.replace(/\/\*[\s\S]*?\*\//g, " ");
-  text = text.replace(/\/\/.*$/gm, " ");
-
-  if (language === "python") {
-    text = text.replace(/#.*$/gm, " ");
-    text = text.replace(/^\s*("""|''')[\s\S]*?\1/gm, " ");
-  } else if (language !== "c" && language !== "cpp") {
-    text = text.replace(/#.*$/gm, " ");
+  let time = "O(1)";
+  if (nestedLoop || (loops >= 2 && /\b(for|while)\b/.test(text))) {
+    time = "O(n²) — estimated";
+  } else if (loops > 0) {
+    time = "O(n) — estimated";
+  } else if (recursion) {
+    time = "Depends on recursion";
   }
 
-  return text;
+  if (sort && loops === 0) time = "Usually O(n log n) for efficient sorting";
+
+  let space = "O(1) — estimated";
+  if (/\bnew\s+\w+\s*\[|malloc\s*\(|calloc\s*\(|\[\s*\]|list\s*\(|vector\s*</i.test(code)) {
+    space = "O(n) — possible extra storage";
+  }
+
+  return { time, space, lines: code ? code.split("\n").length : 0 };
 }
 
-function checkBrackets(code) {
+function analyzeCode(code = getCode()) {
+  const result = estimateComplexity(code);
+
+  if ($("timeComplexity")) $("timeComplexity").textContent = result.time;
+  if ($("spaceComplexity")) $("spaceComplexity").textContent = result.space;
+  if ($("resultLines")) $("resultLines").textContent = result.lines;
+  if ($("fingerprint")) $("fingerprint").textContent = hashCode(code);
+
   const stack = [];
   const pairs = { ")": "(", "]": "[", "}": "{" };
+  let balanced = true;
+  let quote = null;
+  let escaped = false;
 
-  for (const ch of code) {
-    if ("([{".includes(ch)) {
-      stack.push(ch);
-    } else if (")]}".includes(ch)) {
-      if (stack.pop() !== pairs[ch]) return false;
+  for (const char of code) {
+    if (quote) {
+      if (escaped) escaped = false;
+      else if (char === "\\") escaped = true;
+      else if (char === quote) quote = null;
+      continue;
+    }
+
+    if (char === '"' || char === "'" || char === "`") {
+      quote = char;
+      continue;
+    }
+
+    if ("([{".includes(char)) stack.push(char);
+    if (")]}".includes(char)) {
+      if (stack.pop() !== pairs[char]) {
+        balanced = false;
+        break;
+      }
     }
   }
 
-  return stack.length === 0;
-}
+  if (stack.length || quote) balanced = false;
 
-function estimateComplexity(code, language) {
-  const clean = removeCommentsAndStrings(code, language);
-  const loopCount = (clean.match(
-    /\b(for|while|do)\b|\.forEach\s*\(/g
-  ) || []).length;
-
-  const nested = /\bfor\b[\s\S]{0,300}\bfor\b|\bwhile\b[\s\S]{0,300}\bwhile\b/.test(clean);
-  const recursive = /\b(\w+)\s*\([^;{}]*\)[\s\S]{0,100}\b\1\s*\(/.test(clean);
-  const sortCall = /\b(sort|sorted|Arrays\.sort|Collections\.sort)\s*\(/.test(clean);
-
-  let time = "O(1)";
-  let reason = "No obvious loop or repeated operation was detected.";
-
-  if (nested) {
-    time = "O(n²) approx.";
-    reason = "Potential nested loops detected.";
-  } else if (recursive) {
-    time = "O(n) or more";
-    reason = "Possible recursion detected; inspect the recurrence.";
-  } else if (sortCall) {
-    time = "O(n log n) approx.";
-    reason = "A sorting call was detected.";
-  } else if (loopCount > 0) {
-    time = "O(n) approx.";
-    reason = "One or more loops were detected.";
+  if ($("analysisDetails")) {
+    $("analysisDetails").innerHTML = `
+      <p><strong>Bracket check:</strong> ${balanced ? "No obvious mismatch found" : "Possible unmatched bracket or quote"}</p>
+      <p><strong>Loop count:</strong> ${(code.match(/\b(for|while|foreach)\b/gi) || []).length}</p>
+      <p><strong>Recursion keyword check:</strong> ${/\breturn\b/.test(code) ? "Return statement detected" : "No return statement detected"}</p>
+      <p><strong>Fingerprint:</strong> ${hashCode(code)}</p>
+      <p><em>These are lightweight estimates, not a full compiler or formal complexity proof.</em></p>
+    `;
   }
 
-  const arrayAllocation =
-    /\bnew\s+\w+\s*\[|\bnew\s+Array\s*\(|\[\s*.*\]/.test(clean);
-
-  const space = arrayAllocation ? "O(n) approx." : "O(1) approx.";
-
-  return { time, space, loopCount, reason };
-}
-
-function analyzeCode() {
-  const code = getCode();
-  const language = getLanguage();
-
-  if (!code.trim()) {
-    $("analysisMessage").textContent = "Enter code before analyzing.";
-    return;
+  if ($("analysisMessage")) {
+    $("analysisMessage").textContent = balanced
+      ? "Basic checks completed. Run your program to test actual behavior."
+      : "Check your brackets or quotation marks. This simple check may not understand every language syntax.";
   }
 
-  const result = estimateComplexity(code, language);
-  const lines = code.split("\n").filter(line => line.trim()).length;
-
-  $("timeComplexity").textContent = result.time;
-  $("spaceComplexity").textContent = result.space;
-  $("resultLines").textContent = lines;
-  $("fingerprint").textContent = fingerprint(code);
-  $("analysisDetails").textContent =
-    `Language: ${languageNames[language]}. ` +
-    `Loop-like constructs detected: ${result.loopCount}. ` +
-    `Bracket status: ${checkBrackets(code) ? "Valid" : "Check required"}. ` +
-    result.reason;
-
-  $("analysisMessage").textContent =
-    "Complexity is estimated using simple pattern matching, not a formal proof.";
-
-  saveHistory({
-    language,
-    time: result.time,
-    fingerprint: fingerprint(code),
-    date: new Date().toLocaleString()
-  });
+  if ($("resultsSection")) $("resultsSection").style.display = "block";
+  saveHistory(code, getLanguage());
+  return result;
 }
 
-function getHistory() {
+function saveHistory(code, language) {
+  if (!code.trim()) return;
+
   try {
-    return JSON.parse(localStorage.getItem("codedna_history") || "[]");
+    const history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+    history.unshift({
+      code: code.slice(0, 12000),
+      language,
+      time: new Date().toLocaleString()
+    });
+    localStorage.setItem(historyKey, JSON.stringify(history.slice(0, 20)));
   } catch {
-    return [];
+    // History is optional if browser storage is unavailable.
   }
-}
-
-function saveHistory(item) {
-  const history = getHistory();
-  history.unshift(item);
-  localStorage.setItem("codedna_history", JSON.stringify(history.slice(0, 20)));
-  renderHistory();
 }
 
 function renderHistory() {
-  const history = getHistory();
   const container = $("historyList");
+  if (!container) return;
+
+  let history = [];
+
+  try {
+    history = JSON.parse(localStorage.getItem(historyKey) || "[]");
+  } catch {
+    history = [];
+  }
 
   if (!history.length) {
-    container.textContent = "No history yet. Analyze some code first.";
+    container.textContent = "No saved code yet. Analyze a program to add it here.";
     return;
   }
 
-  container.replaceChildren();
+  container.innerHTML = history.map((item, index) => `
+    <div class="history-item">
+      <p><strong>${escapeHTML(item.language.toUpperCase())}</strong> · ${escapeHTML(item.time)}</p>
+      <pre>${escapeHTML(item.code.slice(0, 300))}</pre>
+      <button type="button" data-history-index="${index}">Load code</button>
+    </div>
+  `).join("");
 
-  history.forEach(item => {
-    const row = document.createElement("div");
-    row.style.padding = "12px";
-    row.style.marginBottom = "8px";
-    row.style.border = "1px solid #29293b";
-    row.style.borderRadius = "8px";
-
-    const title = document.createElement("strong");
-    title.textContent = `${languageNames[item.language] || item.language} — ${item.time}`;
-
-    const detail = document.createElement("p");
-    detail.className = "muted";
-    detail.textContent = `${item.date} · ${item.fingerprint}`;
-
-    row.append(title, detail);
-    container.appendChild(row);
+  container.querySelectorAll("[data-history-index]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const item = history[Number(button.dataset.historyIndex)];
+      if (!item) return;
+      if ($("languageSelect")) $("languageSelect").value = item.language;
+      if ($("codeInput")) $("codeInput").value = item.code;
+      showPage("editorPage");
+      updateEditor();
+    });
   });
-}
-
-function showPage(pageId) {
-  document.querySelectorAll(".page").forEach(page => {
-    page.classList.toggle("hidden", page.id !== pageId);
-  });
-
-  document.querySelectorAll(".nav").forEach(button => {
-    button.classList.toggle("active", button.dataset.page === pageId);
-  });
-
-  const titles = {
-    editorPage: "Code Editor",
-    historyPage: "History",
-    aboutPage: "About"
-  };
-
-  $("pageTitle").textContent = titles[pageId] || "CODE DNA";
 }
 
 async function runCode() {
-  const code = getCode().trim();
+  const code = getCode();
   const language = getLanguage();
+  const button = $("runButton");
 
-  if (!code) {
-    showOutput("Please enter a program first.", true);
+  if (!code.trim()) {
+    addOutput("Please enter a program first.");
+    setStatus("No code to run", true);
     return;
   }
 
-  showOutput("Preparing execution...", false);
-  $("runStatus").textContent = "Execution requested";
-  $("executionStatus").textContent = "Execution service not connected";
+  if (button) button.disabled = true;
+  if ($("executionStatus")) $("executionStatus").textContent = "Running…";
+  setStatus("Sending code to execution service…");
+  addOutput("Running program…");
 
-  showOutput(
-    "Java/Python execution is not connected yet.\n\n" +
-    "The website UI and static analysis can work in the browser, " +
-    "but Java and Python need a secure code-execution service.\n\n" +
-    "Next, we will connect a backend execution API. Do not run " +
-    "untrusted code directly on your computer or expose private API keys.",
-    true
-  );
+  try {
+    const response = await fetch("/api/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        language,
+        code,
+        stdin: $("stdinInput")?.value || ""
+      })
+    });
 
-  $("runStatus").textContent = `${languageNames[language]} runner pending`;
+    const result = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(result.error || `Request failed (${response.status})`);
+    }
+
+    const output = [
+      result.compileOutput ? `COMPILE OUTPUT:\n${result.compileOutput}` : "",
+      result.stdout || "",
+      result.stderr ? `ERROR:\n${result.stderr}` : "",
+      !result.stdout && !result.stderr && !result.compileOutput
+        ? (result.output || "(Program finished with no output.)")
+        : ""
+    ].filter(Boolean).join("\n");
+
+    addOutput(output || "(Program finished with no output.)");
+    const failed = result.code !== 0 && result.code !== null;
+
+    if ($("executionStatus")) {
+      $("executionStatus").textContent = failed ? "Finished with errors" : "Finished";
+    }
+
+    setStatus(failed ? "Program returned an error." : "Execution completed.");
+    saveHistory(code, language);
+  } catch (error) {
+    addOutput(`Execution failed:\n${error.message}\n\nCheck that the /api/run backend is deployed and the execution service is available.`);
+    setStatus("Execution failed", true);
+    if ($("executionStatus")) $("executionStatus").textContent = "Error";
+  } finally {
+    if (button) button.disabled = false;
+  }
 }
 
-$("codeInput").addEventListener("input", updateEditor);
+function compareCodes() {
+  const codeA = $("compareCodeA")?.value || "";
+  const codeB = $("compareCodeB")?.value || "";
+  const language = $("compareLanguage")?.value || getLanguage();
+  const results = $("compareResults");
 
-$("languageSelect").addEventListener("change", () => {
-  updateEditor();
-});
+  if (!codeA.trim() || !codeB.trim()) {
+    if (results) results.textContent = "Enter code in both boxes before comparing.";
+    return;
+  }
 
-$("sampleButton").addEventListener("click", () => {
-  $("codeInput").value = samples[getLanguage()] || "";
+  const a = estimateComplexity(codeA);
+  const b = estimateComplexity(codeB);
+  const same = codeA.trim().replace(/\s+/g, " ") === codeB.trim().replace(/\s+/g, " ");
+
+  if (!results) return;
+
+  results.innerHTML = `
+    <div class="comparison-grid">
+      <div class="comparison-card">
+        <h3>Code A</h3>
+        <p><strong>Language:</strong> ${escapeHTML(language)}</p>
+        <p><strong>Time:</strong> ${escapeHTML(a.time)}</p>
+        <p><strong>Space:</strong> ${escapeHTML(a.space)}</p>
+        <p><strong>Lines:</strong> ${a.lines}</p>
+        <p><strong>Fingerprint:</strong> ${hashCode(codeA)}</p>
+      </div>
+      <div class="comparison-card">
+        <h3>Code B</h3>
+        <p><strong>Language:</strong> ${escapeHTML(language)}</p>
+        <p><strong>Time:</strong> ${escapeHTML(b.time)}</p>
+        <p><strong>Space:</strong> ${escapeHTML(b.space)}</p>
+        <p><strong>Lines:</strong> ${b.lines}</p>
+        <p><strong>Fingerprint:</strong> ${hashCode(codeB)}</p>
+      </div>
+    </div>
+    <p><strong>Text comparison:</strong> ${same ? "The code is identical apart from whitespace." : "The code differs."}</p>
+    <p><em>Complexity values are heuristic estimates. This comparison does not prove which program is faster or correct.</em></p>
+  `;
+}
+
+function showPage(pageId) {
+  ["editorPage", "comparePage", "historyPage", "aboutPage"].forEach((id) => {
+    const page = $(id);
+    if (page) page.style.display = id === pageId ? "block" : "none";
+  });
+
+  document.querySelectorAll(".nav[data-page]").forEach((nav) => {
+    nav.classList.toggle("active", nav.dataset.page === pageId);
+  });
+
+  if (pageId === "historyPage") renderHistory();
+}
+
+function loadSample() {
+  const language = getLanguage();
+  if ($("codeInput")) $("codeInput").value = samples[language] || samples.java;
+  if ($("stdinInput")) $("stdinInput").value = language === "java" || language === "c"
+    ? "5\n10 20 30 40 50"
+    : language === "python"
+      ? "5\n10 20 30 40 50"
+      : "";
   updateEditor();
   clearOutput();
-  $("runStatus").textContent = "Sample loaded";
-});
+}
 
-$("analyzeButton").addEventListener("click", analyzeCode);
+document.addEventListener("DOMContentLoaded", () => {
+  if ($("codeInput")) {
+    $("codeInput").value = samples[getLanguage()] || samples.java;
+    $("codeInput").addEventListener("input", updateEditor);
+  }
 
-$("runButton").addEventListener("click", runCode);
+  $("languageSelect")?.addEventListener("change", () => {
+    updateEditor();
+    setStatus("Language changed. Select Load Sample to insert example code.");
+  });
 
-$("clearButton").addEventListener("click", () => {
-  $("codeInput").value = "";
+  $("sampleButton")?.addEventListener("click", loadSample);
+  $("analyzeButton")?.addEventListener("click", () => analyzeCode());
+  $("runButton")?.addEventListener("click", runCode);
+  $("clearOutputButton")?.addEventListener("click", clearOutput);
+
+  $("clearButton")?.addEventListener("click", () => {
+    if ($("codeInput")) $("codeInput").value = "";
+    updateEditor();
+    clearOutput();
+  });
+
+  $("compareButton")?.addEventListener("click", compareCodes);
+
+  $("clearHistoryButton")?.addEventListener("click", () => {
+    localStorage.removeItem(historyKey);
+    renderHistory();
+  });
+
+  document.querySelectorAll(".nav[data-page]").forEach((nav) => {
+    nav.addEventListener("click", () => showPage(nav.dataset.page));
+  });
+
   updateEditor();
-  clearOutput();
-  $("runStatus").textContent = "Ready to run";
-  $("analysisMessage").textContent = "";
-  $("timeComplexity").textContent = "—";
-  $("spaceComplexity").textContent = "—";
-  $("resultLines").textContent = "0";
-  $("fingerprint").textContent = "—";
-  $("analysisDetails").textContent = "Analyze your code to see the results.";
+  showPage("editorPage");
 });
-
-$("clearOutputButton").addEventListener("click", clearOutput);
-
-$("clearHistoryButton").addEventListener("click", () => {
-  localStorage.removeItem("codedna_history");
-  renderHistory();
-});
-
-document.querySelectorAll(".nav").forEach(button => {
-  button.addEventListener("click", () => showPage(button.dataset.page));
-});
-
-$("languageSelect").value = "java";
-$("codeInput").value = samples.java;
-updateEditor();
-renderHistory();
