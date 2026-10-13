@@ -20,13 +20,14 @@
 
       <div class="nav-label">WORKSPACE</div>
       <button class="nav active" data-page="editorPage">⌘ &nbsp; Code Editor</button>
+      <button class="nav" data-page="comparePage">⇄ &nbsp; Code Compare</button>
       <button class="nav" data-page="historyPage">◷ &nbsp; History</button>
       <button class="nav" data-page="aboutPage">ⓘ &nbsp; About</button>
 
       <div class="sidebar-bottom">
-        <div class="status-dot"></div>
+        <span class="status-dot"></span>
         <span>Workspace ready</span>
-        <div class="sidebar-version">v3.0</div>
+        <span class="sidebar-version">v3.0</span>
       </div>
     </aside>
 
@@ -47,9 +48,9 @@
           <div>
             <div class="eyebrow">WRITE · RUN · UNDERSTAND</div>
             <h2>Turn code into <span class="accent">clarity.</span></h2>
-            <p>Write Java or Python, run your program, and explore its complexity.</p>
+            <p>Write Java or Python, execute your program, and analyze complexity.</p>
           </div>
-          <div class="welcome-symbol">{"{}"}</div>
+          <div class="welcome-symbol">{ }</div>
         </div>
 
         <div class="toolbar">
@@ -99,13 +100,18 @@
 
             <div class="editor-wrap">
               <div id="lineNumbers" class="line-numbers">1</div>
-              <textarea id="codeInput" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Write your code here..." aria-label="Code editor"></textarea>
+              <textarea id="codeInput" spellcheck="false" autocomplete="off" autocapitalize="off" placeholder="Write your code here..." aria-label="Code editor"></textarea>
             </div>
 
             <div class="editor-footer">
               <span id="lineCount">1 line</span>
               <span id="characterCount">0 characters</span>
               <span>UTF-8</span>
+            </div>
+
+            <div class="input-panel">
+              <label for="stdinInput">PROGRAM INPUT (STDIN)</label>
+              <textarea id="stdinInput" rows="3" placeholder="Enter input values here, if required..."></textarea>
             </div>
 
             <div class="run-bar">
@@ -123,15 +129,15 @@
           <section class="output-card">
             <div class="panel-heading">
               <div class="panel-title">Output Terminal</div>
-              <span class="muted">STDOUT</span>
+              <span class="muted">STDOUT / STDERR</span>
             </div>
             <div class="terminal-body">
               <div class="terminal-welcome">
                 <span class="terminal-prompt">&gt;_</span>
-                <p>Program output will appear here.</p>
-                <small>Select a language and click Run Code.</small>
+                <p>Ready for your first run.</p>
+                <small>Program output and errors will appear here.</small>
               </div>
-              <pre id="outputText" aria-live="polite">Waiting for execution...</pre>
+              <pre id="outputText" aria-live="polite"></pre>
             </div>
             <div class="terminal-footer">
               <span class="status-dot"></span>
@@ -173,17 +179,71 @@
             </div>
           </div>
 
-          <div id="analysisDetails" class="analysis-details">
-            Analyze your code to see the results.
-          </div>
+          <div id="analysisDetails" class="analysis-details">Analyze your code to see the results.</div>
           <p id="analysisMessage" class="muted"></p>
+        </section>
+      </section>
+
+      <section id="comparePage" class="page hidden">
+        <div class="welcome">
+          <div>
+            <div class="eyebrow">SIDE-BY-SIDE ANALYSIS</div>
+            <h2>Compare your <span class="accent">code.</span></h2>
+            <p>Compare two solutions by code structure and estimated complexity.</p>
+          </div>
+          <div class="welcome-symbol">{ }</div>
+        </div>
+
+        <div class="toolbar">
+          <label class="field">
+            <span>LANGUAGE</span>
+            <select id="compareLanguage">
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+          </label>
+          <button id="compareButton" class="button primary">⇄ Compare Code</button>
+        </div>
+
+        <div class="workspace-grid">
+          <section class="editor-card">
+            <div class="panel-heading">
+              <span class="file-name">Solution A</span>
+              <span class="muted">FIRST PROGRAM</span>
+            </div>
+            <div class="editor-wrap">
+              <textarea id="compareCodeA" aria-label="First code solution" spellcheck="false" placeholder="Paste your first solution here..."></textarea>
+            </div>
+            <div class="editor-footer"><span>Solution A</span><span>Editable</span></div>
+          </section>
+
+          <section class="editor-card">
+            <div class="panel-heading">
+              <span class="file-name">Solution B</span>
+              <span class="muted">SECOND PROGRAM</span>
+            </div>
+            <div class="editor-wrap">
+              <textarea id="compareCodeB" aria-label="Second code solution" spellcheck="false" placeholder="Paste your second solution here..."></textarea>
+            </div>
+            <div class="editor-footer"><span>Solution B</span><span>Editable</span></div>
+          </section>
+        </div>
+
+        <section class="analysis-card">
+          <div class="eyebrow">COMPARISON REPORT</div>
+          <h3>Results</h3>
+          <div id="compareResults">Enter both programs and click Compare Code.</div>
         </section>
       </section>
 
       <section id="historyPage" class="page hidden">
         <div class="simple-card">
+          <div class="eyebrow">YOUR WORK</div>
           <h2>Analysis History</h2>
-          <p class="muted">Your saved local analysis records.</p>
+          <p class="muted">Recent analysis records saved in this browser.</p>
           <div id="historyList">No history yet.</div>
           <button id="clearHistoryButton" class="button secondary">Clear History</button>
         </div>
@@ -193,8 +253,8 @@
         <div class="simple-card">
           <div class="eyebrow">ABOUT THE PROJECT</div>
           <h2>Understand the DNA of your code.</h2>
-          <p>CODE DNA is a student project for code analysis and program execution.</p>
-          <p class="muted">Static analysis estimates complexity. Actual Java and Python execution requires a connected execution service.</p>
+          <p>CODE DNA is a student coding workspace for program execution, source-code comparison, and complexity estimation.</p>
+          <p class="muted">Complexity is estimated through static analysis. Java and Python execution requires a working backend execution service.</p>
         </div>
       </section>
     </main>
