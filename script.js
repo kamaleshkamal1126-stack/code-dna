@@ -1,480 +1,362 @@
 
 "use strict";
 
-const $ = id => document.getElementById(id);
+const $ = (id) => document.getElementById(id);
 
-const LANGUAGES = {
-  c: "C",
-  cpp: "C++",
+const samples = {
+  java: `import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter a number: ");
+        int n = sc.nextInt();
+
+        for (int i = 1; i <= n; i++) {
+            System.out.println(i);
+        }
+        sc.close();
+    }
+}`,
+  python: `n = int(input("Enter a number: "))
+
+for i in range(1, n + 1):
+    print(i)`,
+  c: `#include <stdio.h>
+
+int main(void) {
+    int n;
+    printf("Enter a number: ");
+    scanf("%d", &n);
+
+    for (int i = 1; i <= n; i++) {
+        printf("%d\\n", i);
+    }
+    return 0;
+}`,
+  cpp: `#include <iostream>
+using namespace std;
+
+int main() {
+    int n;
+    cout << "Enter a number: ";
+    cin >> n;
+
+    for (int i = 1; i <= n; i++) {
+        cout << i << endl;
+    }
+    return 0;
+}`,
+  javascript: `const n = 5;
+
+for (let i = 1; i <= n; i++) {
+    console.log(i);
+}`
+};
+
+const languageNames = {
   java: "Java",
   python: "Python",
+  c: "C",
+  cpp: "C++",
   javascript: "JavaScript"
 };
 
-const TOPICS = {
-  general: "General Programming",
-  arrays: "Arrays",
-  strings: "Strings",
-  "linked-lists": "Linked Lists",
-  stacks: "Stacks",
-  queues: "Queues",
-  searching: "Searching",
-  sorting: "Sorting",
-  recursion: "Recursion",
-  trees: "Trees",
-  graphs: "Graphs",
-  hashing: "Hashing",
-  "dynamic-programming": "Dynamic Programming",
-  oop: "Object-Oriented Programming",
-  "exception-handling": "Exception Handling",
-  multithreading: "Multithreading",
-  "file-handling": "File Handling"
-};
+function getCode() {
+  return $("codeInput").value;
+}
 
-const HISTORY_KEY = "codedna_history_v3";
-let lastFingerprint = "";
+function getLanguage() {
+  return $("languageSelect").value;
+}
 
-function hashCode(text) {
+function updateEditor() {
+  const code = getCode();
+  const lines = code.split("\n").length;
+
+  $("lineNumbers").textContent = Array.from(
+    { length: lines }, (_, i) => i + 1
+  ).join("\n");
+
+  $("lineCount").textContent = `${lines} line${lines === 1 ? "" : "s"}`;
+  $("characterCount").textContent = `${code.length} characters`;
+
+  const extensions = {
+    java: "Main.java",
+    python: "main.py",
+    c: "main.c",
+    cpp: "main.cpp",
+    javascript: "main.js"
+  };
+
+  $("fileName").textContent = extensions[getLanguage()] || "code.txt";
+}
+
+function showOutput(message, isError = false) {
+  const output = $("outputText");
+  output.textContent = message;
+  output.style.display = "block";
+  output.style.color = isError ? "#fca5a5" : "#b9f6c8";
+
+  const welcome = document.querySelector(".terminal-welcome");
+  if (welcome) welcome.style.display = "none";
+}
+
+function clearOutput() {
+  $("outputText").textContent = "";
+  $("outputText").style.display = "none";
+
+  const welcome = document.querySelector(".terminal-welcome");
+  if (welcome) welcome.style.display = "block";
+
+  $("executionStatus").textContent = "No execution yet";
+}
+
+function fingerprint(code) {
   let hash = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i);
+
+  for (let i = 0; i < code.length; i++) {
+    hash ^= code.charCodeAt(i);
     hash = Math.imul(hash, 16777619);
   }
+
   return (hash >>> 0).toString(16).toUpperCase().padStart(8, "0");
 }
 
 function removeCommentsAndStrings(code, language) {
-  let result = "";
-  let state = "normal";
-  let quote = "";
-  let escaped = false;
+  let text = code;
 
-  for (let i = 0; i < code.length; i++) {
-    const c = code[i];
-    const next = code[i + 1];
+  text = text.replace(
+    /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`)/gs,
+    " "
+  );
 
-    if (state === "line") {
-      if (c === "\n") {
-        result += "\n";
-        state = "normal";
-      } else {
-        result += " ";
-      }
-      continue;
-    }
+  text = text.replace(/\/\*[\s\S]*?\*\//g, " ");
+  text = text.replace(/\/\/.*$/gm, " ");
 
-    if (state === "block") {
-      if (c === "*" && next === "/") {
-        result += "  ";
-        i++;
-        state = "normal";
-      } else {
-        result += c === "\n" ? "\n" : " ";
-      }
-      continue;
-    }
-
-    if (state === "string") {
-      result += c === "\n" ? "\n" : " ";
-      if (escaped) escaped = false;
-      else if (c === "\\") escaped = true;
-      else if (c === quote) state = "normal";
-      continue;
-    }
-
-    if (language === "python" && c === "#") {
-      result += " ";
-      state = "line";
-      continue;
-    }
-
-    if (["c", "cpp"].includes(language) && c === "#") {
-      result += " ";
-      state = "line";
-      continue;
-    }
-
-    if (c === "/" && next === "/") {
-      result += "  ";
-      i++;
-      state = "line";
-      continue;
-    }
-
-    if (c === "/" && next === "*") {
-      result += "  ";
-      i++;
-      state = "block";
-      continue;
-    }
-
-    if (c === '"' || c === "'" || c === "`") {
-      result += " ";
-      quote = c;
-      state = "string";
-      continue;
-    }
-
-    result += c;
+  if (language === "python") {
+    text = text.replace(/#.*$/gm, " ");
+    text = text.replace(/^\s*("""|''')[\s\S]*?\1/gm, " ");
+  } else if (language !== "c" && language !== "cpp") {
+    text = text.replace(/#.*$/gm, " ");
   }
 
-  return result;
+  return text;
 }
 
-function bracketsValid(code) {
+function checkBrackets(code) {
   const stack = [];
   const pairs = { ")": "(", "]": "[", "}": "{" };
 
-  for (const character of code) {
-    if ("([{".includes(character)) {
-      stack.push(character);
-    } else if (pairs[character]) {
-      if (stack.pop() !== pairs[character]) return false;
+  for (const ch of code) {
+    if ("([{".includes(ch)) {
+      stack.push(ch);
+    } else if (")]}".includes(ch)) {
+      if (stack.pop() !== pairs[ch]) return false;
     }
   }
 
   return stack.length === 0;
 }
 
-function getLoopCount(code) {
-  return (code.match(/\b(for|while|do)\b/g) || []).length;
-}
-
-function getFunctionCount(code, language) {
-  let pattern;
-
-  if (language === "python") {
-    pattern = /^\s*def\s+[A-Za-z_]\w*\s*\(/gm;
-  } else if (language === "javascript") {
-    pattern = /\bfunction\s+[A-Za-z_$]\w*\s*\(|(?:const|let|var)\s+[A-Za-z_$]\w*\s*=/g;
-  } else if (language === "java") {
-    pattern = /\b(?:public|private|protected|static|final|void|int|double|float|boolean|String)\s+\w+\s*\([^;]*\)\s*\{/g;
-  } else {
-    pattern = /\b[A-Za-z_]\w*\s*\([^;{}]*\)\s*\{/g;
-  }
-
-  return (code.match(pattern) || []).length;
-}
-
-function estimateComplexity(code, language, loops) {
-  const recursive = language === "python"
-    ? /^\s*def\s+(\w+)\s*\([^)]*\)\s*:[\s\S]*?\b\1\s*\(/m.test(code)
-    : /\bfunction\s+(\w+)\s*\([^)]*\)\s*\{[\s\S]*?\b\1\s*\(/.test(code);
-
-  if (recursive) {
-    return {
-      time: "Check recursion",
-      space: "Depends on recursion"
-    };
-  }
-
-  if (loops >= 2) {
-    return {
-      time: "O(n²) possible",
-      space: "O(1) possible"
-    };
-  }
-
-  if (loops === 1) {
-    return {
-      time: "O(n) possible",
-      space: "O(1) possible"
-    };
-  }
-
-  return {
-    time: "O(1) possible",
-    space: "O(1) possible"
-  };
-}
-
-function analyzeCode(code, language, topic) {
+function estimateComplexity(code, language) {
   const clean = removeCommentsAndStrings(code, language);
-  const lines = code ? code.split(/\r\n|\r|\n/) : [];
-  const nonEmptyLines = lines.filter(line => line.trim()).length;
-  const loops = getLoopCount(clean);
-  const functions = getFunctionCount(clean, language);
-  const conditionals = (clean.match(/\b(if|else|elif|switch|case)\b/g) || []).length;
-  const complexity = estimateComplexity(clean, language, loops);
-  const fingerprint = hashCode(clean.replace(/\s+/g, " ").trim());
+  const loopCount = (clean.match(
+    /\b(for|while|do)\b|\.forEach\s*\(/g
+  ) || []).length;
 
-  const notes = [
-    "Complexity results are approximate pattern-based estimates.",
-    "Loop count does not always reveal the actual algorithm complexity.",
-    "A balanced-bracket check does not prove that the code compiles."
-  ];
+  const nested = /\bfor\b[\s\S]{0,300}\bfor\b|\bwhile\b[\s\S]{0,300}\bwhile\b/.test(clean);
+  const recursive = /\b(\w+)\s*\([^;{}]*\)[\s\S]{0,100}\b\1\s*\(/.test(clean);
+  const sortCall = /\b(sort|sorted|Arrays\.sort|Collections\.sort)\s*\(/.test(clean);
 
-  if (topic === "searching") {
-    notes.push("Linear search is usually O(n); binary search is usually O(log n).");
+  let time = "O(1)";
+  let reason = "No obvious loop or repeated operation was detected.";
+
+  if (nested) {
+    time = "O(n²) approx.";
+    reason = "Potential nested loops detected.";
+  } else if (recursive) {
+    time = "O(n) or more";
+    reason = "Possible recursion detected; inspect the recurrence.";
+  } else if (sortCall) {
+    time = "O(n log n) approx.";
+    reason = "A sorting call was detected.";
+  } else if (loopCount > 0) {
+    time = "O(n) approx.";
+    reason = "One or more loops were detected.";
   }
 
-  if (topic === "sorting") {
-    notes.push("Sorting complexity depends on the algorithm, such as insertion sort or merge sort.");
-  }
+  const arrayAllocation =
+    /\bnew\s+\w+\s*\[|\bnew\s+Array\s*\(|\[\s*.*\]/.test(clean);
 
-  if (topic === "graphs") {
-    notes.push("Graph algorithms often use vertex and edge counts, such as V and E.");
-  }
+  const space = arrayAllocation ? "O(n) approx." : "O(1) approx.";
 
-  if (topic === "dynamic-programming") {
-    notes.push("Dynamic programming complexity depends on the number of states and work per state.");
-  }
-
-  return {
-    language,
-    topic,
-    characters: code.length,
-    lines: lines.length,
-    nonEmptyLines,
-    loops,
-    functions,
-    conditionals,
-    bracketStatus: bracketsValid(clean),
-    fingerprint,
-    time: complexity.time,
-    space: complexity.space,
-    notes
-  };
+  return { time, space, loopCount, reason };
 }
 
-function safeHistoryRead() {
+function analyzeCode() {
+  const code = getCode();
+  const language = getLanguage();
+
+  if (!code.trim()) {
+    $("analysisMessage").textContent = "Enter code before analyzing.";
+    return;
+  }
+
+  const result = estimateComplexity(code, language);
+  const lines = code.split("\n").filter(line => line.trim()).length;
+
+  $("timeComplexity").textContent = result.time;
+  $("spaceComplexity").textContent = result.space;
+  $("resultLines").textContent = lines;
+  $("fingerprint").textContent = fingerprint(code);
+  $("analysisDetails").textContent =
+    `Language: ${languageNames[language]}. ` +
+    `Loop-like constructs detected: ${result.loopCount}. ` +
+    `Bracket status: ${checkBrackets(code) ? "Valid" : "Check required"}. ` +
+    result.reason;
+
+  $("analysisMessage").textContent =
+    "Complexity is estimated using simple pattern matching, not a formal proof.";
+
+  saveHistory({
+    language,
+    time: result.time,
+    fingerprint: fingerprint(code),
+    date: new Date().toLocaleString()
+  });
+}
+
+function getHistory() {
   try {
-    const value = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    return Array.isArray(value) ? value : [];
+    return JSON.parse(localStorage.getItem("codedna_history") || "[]");
   } catch {
     return [];
   }
 }
 
-function safeHistoryWrite(items) {
-  try {
-    localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 50)));
-  } catch {
-    showMessage("Analysis completed, but history could not be saved.", "error");
-  }
-}
-
-function showMessage(message, type = "") {
-  const element = $("analysisMessage");
-  if (!element) return;
-  element.textContent = message;
-  element.className = "message" + (type ? " " + type : "");
-}
-
-function updateCounters() {
-  const code = $("codeInput").value;
-  $("lineCount").textContent = code ? code.split(/\r\n|\r|\n/).length + " lines" : "0 lines";
-  $("characterCount").textContent = code.length + " characters";
-}
-
-function displayResults(result) {
-  $("resultsSection").classList.remove("hidden");
-  $("resultLanguage").textContent = LANGUAGES[result.language];
-  $("resultTopic").textContent = TOPICS[result.topic] || result.topic;
-  $("resultLines").textContent = result.nonEmptyLines;
-  $("timeComplexity").textContent = result.time;
-  $("spaceComplexity").textContent = result.space;
-
-  $("analysisDetails").innerHTML = `
-    <div class="detail-row"><span>Characters</span><strong>${result.characters}</strong></div>
-    <div class="detail-row"><span>Loop count</span><strong>${result.loops}</strong></div>
-    <div class="detail-row"><span>Possible functions</span><strong>${result.functions}</strong></div>
-    <div class="detail-row"><span>Conditional patterns</span><strong>${result.conditionals}</strong></div>
-    <div class="detail-row"><span>Bracket status</span><strong>${result.bracketStatus ? "Valid" : "Check required"}</strong></div>
-    <div class="detail-notes"><h4>Notes</h4><ul>${result.notes.map(note => `<li>${note}</li>`).join("")}</ul></div>
-  `;
-
-  lastFingerprint = result.fingerprint;
-  $("fingerprintBox").classList.remove("hidden");
-  $("codeFingerprint").textContent = result.fingerprint;
-}
-
-function runAnalysis(code, language, topic) {
-  const result = analyzeCode(code, language, topic);
-  displayResults(result);
-  return result;
+function saveHistory(item) {
+  const history = getHistory();
+  history.unshift(item);
+  localStorage.setItem("codedna_history", JSON.stringify(history.slice(0, 20)));
+  renderHistory();
 }
 
 function renderHistory() {
-  const history = safeHistoryRead();
+  const history = getHistory();
   const container = $("historyList");
 
   if (!history.length) {
-    container.innerHTML = '<div class="empty-state"><h3>No analysis yet</h3><p>Your saved analyses will appear here.</p></div>';
+    container.textContent = "No history yet. Analyze some code first.";
     return;
   }
 
-  container.innerHTML = history.map((item, index) => `
-    <article class="history-item">
-      <div class="history-icon">⌘</div>
-      <div class="history-info">
-        <strong>${LANGUAGES[item.language] || item.language} · ${TOPICS[item.topic] || item.topic}</strong>
-        <p>${item.time} · ${item.lines} non-empty lines</p>
-        <p>Time estimate: ${item.complexity} · Fingerprint: ${item.fingerprint}</p>
-      </div>
-      <button class="secondary-button history-load" data-index="${index}" type="button">View</button>
-    </article>
-  `).join("");
+  container.replaceChildren();
 
-  container.querySelectorAll(".history-load").forEach(button => {
-    button.addEventListener("click", () => {
-      const item = safeHistoryRead()[Number(button.dataset.index)];
-      if (!item) return;
+  history.forEach(item => {
+    const row = document.createElement("div");
+    row.style.padding = "12px";
+    row.style.marginBottom = "8px";
+    row.style.border = "1px solid #29293b";
+    row.style.borderRadius = "8px";
 
-      $("languageSelect").value = item.language;
-      $("topicSelect").value = item.topic;
-      $("codeInput").value = item.code;
-      updateCounters();
-      runAnalysis(item.code, item.language, item.topic);
-      showPage("analyzerPage");
-      showMessage("Saved analysis loaded.", "success");
-    });
+    const title = document.createElement("strong");
+    title.textContent = `${languageNames[item.language] || item.language} — ${item.time}`;
+
+    const detail = document.createElement("p");
+    detail.className = "muted";
+    detail.textContent = `${item.date} · ${item.fingerprint}`;
+
+    row.append(title, detail);
+    container.appendChild(row);
   });
 }
 
 function showPage(pageId) {
   document.querySelectorAll(".page").forEach(page => {
     page.classList.toggle("hidden", page.id !== pageId);
-    page.classList.toggle("active-page", page.id === pageId);
   });
 
-  document.querySelectorAll(".nav-item").forEach(button => {
+  document.querySelectorAll(".nav").forEach(button => {
     button.classList.toggle("active", button.dataset.page === pageId);
   });
 
   const titles = {
-    analyzerPage: "Code Analyzer",
-    comparePage: "Code Comparison",
-    historyPage: "Analysis History",
-    aboutPage: "About CODE DNA"
+    editorPage: "Code Editor",
+    historyPage: "History",
+    aboutPage: "About"
   };
 
   $("pageTitle").textContent = titles[pageId] || "CODE DNA";
-
-  if (pageId === "historyPage") renderHistory();
 }
 
-function compareCodes() {
-  const codeA = $("compareCodeA").value;
-  const codeB = $("compareCodeB").value;
-  const language = $("compareLanguage").value;
-  const topic = $("compareTopic").value;
-  const output = $("compareResults");
+async function runCode() {
+  const code = getCode().trim();
+  const language = getLanguage();
 
-  output.classList.remove("hidden");
-
-  if (!codeA.trim() || !codeB.trim()) {
-    output.innerHTML = '<p class="message error">Enter code in both boxes.</p>';
+  if (!code) {
+    showOutput("Please enter a program first.", true);
     return;
   }
 
-  const a = analyzeCode(codeA, language, topic);
-  const b = analyzeCode(codeB, language, topic);
-  const match = a.fingerprint === b.fingerprint;
+  showOutput("Preparing execution...", false);
+  $("runStatus").textContent = "Execution requested";
+  $("executionStatus").textContent = "Execution service not connected";
 
-  output.innerHTML = `
-    <div class="comparison-banner ${match ? "match" : ""}">
-      <strong>${match ? "Fingerprints match" : "Fingerprints differ"}</strong>
-      <p>Fingerprints are basic hashes and cannot prove code originality or plagiarism.</p>
-    </div>
-    <div class="stats-grid">
-      <article class="stat-card"><span>Code A lines</span><strong>${a.nonEmptyLines}</strong><p>${a.time}</p><code>${a.fingerprint}</code></article>
-      <article class="stat-card"><span>Code B lines</span><strong>${b.nonEmptyLines}</strong><p>${b.time}</p><code>${b.fingerprint}</code></article>
-      <article class="stat-card"><span>Line difference</span><strong>${Math.abs(a.nonEmptyLines - b.nonEmptyLines)}</strong></article>
-    </div>
-  `;
+  showOutput(
+    "Java/Python execution is not connected yet.\n\n" +
+    "The website UI and static analysis can work in the browser, " +
+    "but Java and Python need a secure code-execution service.\n\n" +
+    "Next, we will connect a backend execution API. Do not run " +
+    "untrusted code directly on your computer or expose private API keys.",
+    true
+  );
+
+  $("runStatus").textContent = `${languageNames[language]} runner pending`;
 }
 
-$("loginForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const username = $("username").value.trim();
-  const password = $("password").value;
+$("codeInput").addEventListener("input", updateEditor);
 
-  if (!username || !password) {
-    $("loginMessage").textContent = "Enter a username and password.";
-    return;
-  }
-
-  sessionStorage.setItem("codedna_user", username);
-  $("userDisplay").textContent = username;
-  $("userDisplay").previousElementSibling.textContent = username.charAt(0).toUpperCase();
-  $("loginPage").classList.add("hidden");
-  $("app").classList.remove("hidden");
-  showPage("analyzerPage");
+$("languageSelect").addEventListener("change", () => {
+  updateEditor();
 });
 
-$("logoutButton").addEventListener("click", () => {
-  sessionStorage.removeItem("codedna_user");
-  $("app").classList.add("hidden");
-  $("loginPage").classList.remove("hidden");
+$("sampleButton").addEventListener("click", () => {
+  $("codeInput").value = samples[getLanguage()] || "";
+  updateEditor();
+  clearOutput();
+  $("runStatus").textContent = "Sample loaded";
 });
 
-document.querySelectorAll(".nav-item").forEach(button => {
-  button.addEventListener("click", () => showPage(button.dataset.page));
-});
+$("analyzeButton").addEventListener("click", analyzeCode);
 
-$("codeInput").addEventListener("input", updateCounters);
+$("runButton").addEventListener("click", runCode);
 
 $("clearButton").addEventListener("click", () => {
   $("codeInput").value = "";
-  $("resultsSection").classList.add("hidden");
-  updateCounters();
-  showMessage("Editor cleared.", "success");
+  updateEditor();
+  clearOutput();
+  $("runStatus").textContent = "Ready to run";
+  $("analysisMessage").textContent = "";
+  $("timeComplexity").textContent = "—";
+  $("spaceComplexity").textContent = "—";
+  $("resultLines").textContent = "0";
+  $("fingerprint").textContent = "—";
+  $("analysisDetails").textContent = "Analyze your code to see the results.";
 });
 
-$("analyzeButton").addEventListener("click", () => {
-  const code = $("codeInput").value;
-  if (!code.trim()) {
-    showMessage("Paste some code before analyzing.", "error");
-    return;
-  }
-
-  const language = $("languageSelect").value;
-  const topic = $("topicSelect").value;
-  const result = runAnalysis(code, language, topic);
-
-  const history = safeHistoryRead();
-  history.unshift({
-    time: new Date().toLocaleString(),
-    language,
-    topic,
-    lines: result.nonEmptyLines,
-    complexity: result.time,
-    fingerprint: result.fingerprint,
-    code
-  });
-
-  safeHistoryWrite(history);
-  showMessage("Analysis completed.", "success");
-});
-
-$("copyFingerprintButton").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(lastFingerprint);
-    $("copyFingerprintButton").textContent = "Copied!";
-  } catch {
-    showMessage("Clipboard permission is unavailable.", "error");
-  }
-});
+$("clearOutputButton").addEventListener("click", clearOutput);
 
 $("clearHistoryButton").addEventListener("click", () => {
-  if (confirm("Clear all analysis history?")) {
-    localStorage.removeItem(HISTORY_KEY);
-    renderHistory();
-  }
+  localStorage.removeItem("codedna_history");
+  renderHistory();
 });
 
-$("compareButton").addEventListener("click", compareCodes);
+document.querySelectorAll(".nav").forEach(button => {
+  button.addEventListener("click", () => showPage(button.dataset.page));
+});
 
-updateCounters();
-
-const savedUser = sessionStorage.getItem("codedna_user");
-if (savedUser) {
-  $("userDisplay").textContent = savedUser;
-  $("userDisplay").previousElementSibling.textContent = savedUser.charAt(0).toUpperCase();
-  $("loginPage").classList.add("hidden");
-  $("app").classList.remove("hidden");
-} else {
-  $("app").classList.add("hidden");
-  $("loginPage").classList.remove("hidden");
-}
+$("languageSelect").value = "java";
+$("codeInput").value = samples.java;
+updateEditor();
+renderHistory();
