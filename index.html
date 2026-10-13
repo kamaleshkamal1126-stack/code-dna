@@ -1,0 +1,165 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CODE DNA | Code Intelligence</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<section id="loginPage" class="login-page">
+    <div class="login-card">
+        <div class="logo">🧬</div>
+        <h1>CODE DNA</h1>
+        <p>Discover the DNA of your code.</p>
+
+        <form id="loginForm">
+            <label for="username">Username</label>
+            <input id="username" type="text" placeholder="Enter username" required>
+
+            <label for="password">Password</label>
+            <input id="password" type="password" placeholder="Enter password" required>
+
+            <button type="submit">Login to Dashboard</button>
+        </form>
+
+        <p class="demo-note">Demo login: enter any username and password.</p>
+        <p id="loginMessage" class="message"></p>
+    </div>
+</section>
+
+<div id="app" class="app hidden">
+    <aside class="sidebar">
+        <div class="brand">🧬 CODE DNA</div>
+        <p class="menu-label">WORKSPACE</p>
+        <button class="nav-btn active" data-page="dashboard">⌂ Dashboard</button>
+        <button class="nav-btn" data-page="analyzer">⌘ Code Analyzer</button>
+        <button class="nav-btn" data-page="compare">⇄ Compare Code</button>
+        <button class="nav-btn" data-page="history">◷ Analysis History</button>
+
+        <div class="sidebar-bottom">
+            <p id="welcomeUser">Welcome!</p>
+            <button id="logoutBtn" class="logout-btn">↪ Logout</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <p class="eyebrow">CODE INTELLIGENCE PLATFORM</p>
+                <h2 id="pageTitle">Dashboard</h2>
+            </div>
+            <span class="status">● System Ready</span>
+        </header>
+
+        <section id="dashboardPage" class="page">
+            <div class="hero">
+                <div>
+                    <p class="eyebrow">WELCOME TO YOUR WORKSPACE</p>
+                    <h1>Understand your code.<br><span>Discover its DNA.</span></h1>
+                    <p>Analyze code patterns, inspect fingerprints, and compare snippets.</p>
+                    <button class="primary" data-goto="analyzer">Start Analyzing →</button>
+                </div>
+                <div class="hero-icon">🧬</div>
+            </div>
+
+            <div class="stats">
+                <div class="stat-card"><p>Total Analyses</p><h2 id="totalAnalyses">0</h2></div>
+                <div class="stat-card"><p>Unique Fingerprints</p><h2 id="uniqueFingerprints">0</h2></div>
+                <div class="stat-card"><p>Code Comparisons</p><h2 id="totalComparisons">0</h2></div>
+            </div>
+
+            <div class="panel">
+                <h3>Quick Start</h3>
+                <p>Open Code Analyzer to inspect one snippet, or Compare Code to calculate similarity between two snippets.</p>
+                <button class="secondary" data-goto="compare">Compare Two Snippets →</button>
+            </div>
+        </section>
+
+        <section id="analyzerPage" class="page hidden">
+            <div class="panel">
+                <h3>Code Analyzer</h3>
+                <p class="muted">Paste a code snippet and inspect its basic characteristics.</p>
+                <textarea id="codeInput" placeholder="Paste your code here..." spellcheck="false"></textarea>
+                <div class="button-row">
+                    <button id="loadSample" class="secondary">Load Sample</button>
+                    <button id="analyzeBtn" class="primary">Analyze Code</button>
+                    <button id="clearCode" class="secondary">Clear</button>
+                </div>
+                <p id="analyzerMessage" class="message"></p>
+            </div>
+
+            <div id="analysisResults" class="hidden">
+                <div class="stats">
+                    <div class="stat-card"><p>Characters</p><h2 id="charCount">0</h2></div>
+                    <div class="stat-card"><p>Lines</p><h2 id="lineCount">0</h2></div>
+                    <div class="stat-card"><p>Keywords</p><h2 id="keywordCount">0</h2></div>
+                </div>
+                <div class="panel">
+                    <h3>Analysis Results</h3>
+                    <div class="result-row"><span>Bracket Status</span><strong id="bracketStatus">-</strong></div>
+                    <div class="result-row"><span>Loop Count</span><strong id="loopCount">0</strong></div>
+                    <div class="result-row"><span>Fingerprint</span><code id="fingerprint"></code></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="comparePage" class="page hidden">
+            <div class="panel">
+                <h3>Code Similarity Checker</h3>
+                <p class="muted">Paste two snippets to estimate how similar their source text is.</p>
+                <label for="codeOne">Code Snippet A</label>
+                <textarea id="codeOne" placeholder="Paste first code snippet..." spellcheck="false"></textarea>
+
+                <label for="codeTwo">Code Snippet B</label>
+                <textarea id="codeTwo" placeholder="Paste second code snippet..." spellcheck="false"></textarea>
+
+                <div class="button-row">
+                    <button id="compareBtn" class="primary">Compare Code</button>
+                    <button id="compareSample" class="secondary">Load Test Samples</button>
+                    <button id="clearCompare" class="secondary">Clear</button>
+                </div>
+
+                <div id="compareResults" class="comparison hidden">
+                    <p class="muted">Estimated textual similarity</p>
+                    <div id="similarityPercent" class="percentage">0%</div>
+                    <div class="progress"><div id="similarityBar"></div></div>
+                    <h3 id="similarityLabel">Comparison Result</h3>
+                    <p id="compareDescription"></p>
+                    <p class="muted">This is a simple text comparison, not proof of plagiarism or algorithm equivalence.</p>
+                </div>
+                <p id="compareMessage" class="message"></p>
+            </div>
+        </section>
+
+        <section id="historyPage" class="page hidden">
+            <div class="panel">
+                <div class="history-heading">
+                    <div>
+                        <h3>Analysis History</h3>
+                        <p class="muted">Analyses from this browser session.</p>
+                    </div>
+                    <button id="clearHistory" class="secondary">Clear History</button>
+                </div>
+                <input id="historySearch" type="search" placeholder="Search by ID or fingerprint...">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Characters</th><th>Lines</th><th>Fingerprint</th></tr>
+                        </thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                </div>
+                <p id="emptyHistory" class="muted">No analyses yet. Analyze some code first.</p>
+            </div>
+        </section>
+
+        <footer>CODE DNA · DSA Mini Project · Demo Version</footer>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
