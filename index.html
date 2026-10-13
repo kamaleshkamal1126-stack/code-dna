@@ -1,165 +1,316 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080d1b">
     <title>CODE DNA | Code Intelligence</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<section id="loginPage" class="login-page">
-    <div class="login-card">
-        <div class="logo">🧬</div>
-        <h1>CODE DNA</h1>
-        <p>Discover the DNA of your code.</p>
+    <!-- LOGIN PAGE -->
+    <section id="loginPage" class="login-page">
+        <div class="login-card">
+            <div class="logo">🧬</div>
+            <h1>CODE DNA</h1>
+            <p>Discover the DNA of your code.</p>
 
-        <form id="loginForm">
-            <label for="username">Username</label>
-            <input id="username" type="text" placeholder="Enter username" required>
+            <form id="loginForm">
+                <label for="username">Username</label>
+                <input
+                    id="username"
+                    type="text"
+                    placeholder="Enter username"
+                    autocomplete="username"
+                    required
+                >
 
-            <label for="password">Password</label>
-            <input id="password" type="password" placeholder="Enter password" required>
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    type="password"
+                    placeholder="Enter password"
+                    autocomplete="current-password"
+                    required
+                >
 
-            <button type="submit">Login to Dashboard</button>
-        </form>
+                <button type="submit">Login to Dashboard</button>
+            </form>
 
-        <p class="demo-note">Demo login: enter any username and password.</p>
-        <p id="loginMessage" class="message"></p>
-    </div>
-</section>
+            <p class="demo-note">
+                Demo login only. Secure authentication will be added later.
+            </p>
 
-<div id="app" class="app hidden">
-    <aside class="sidebar">
-        <div class="brand">🧬 CODE DNA</div>
-        <p class="menu-label">WORKSPACE</p>
-        <button class="nav-btn active" data-page="dashboard">⌂ Dashboard</button>
-        <button class="nav-btn" data-page="analyzer">⌘ Code Analyzer</button>
-        <button class="nav-btn" data-page="compare">⇄ Compare Code</button>
-        <button class="nav-btn" data-page="history">◷ Analysis History</button>
-
-        <div class="sidebar-bottom">
-            <p id="welcomeUser">Welcome!</p>
-            <button id="logoutBtn" class="logout-btn">↪ Logout</button>
+            <p id="loginMessage" class="message" role="status"></p>
         </div>
-    </aside>
+    </section>
 
-    <main class="main">
-        <header class="topbar">
-            <div>
-                <p class="eyebrow">CODE INTELLIGENCE PLATFORM</p>
-                <h2 id="pageTitle">Dashboard</h2>
+    <!-- MAIN APPLICATION -->
+    <div id="app" class="app hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <div class="brand">🧬 CODE DNA</div>
+
+            <p class="menu-label">WORKSPACE</p>
+
+            <nav class="sidebar-nav">
+                <button type="button" class="nav-item active" data-page="analyzer">
+                    <span>⌘</span> Code Analyzer
+                </button>
+
+                <button type="button" class="nav-item" data-page="history">
+                    <span>◷</span> Analysis History
+                </button>
+
+                <button type="button" class="nav-item" data-page="about">
+                    <span>ⓘ</span> About CODE DNA
+                </button>
+            </nav>
+
+            <div class="sidebar-bottom">
+                <p class="menu-label">ACCOUNT</p>
+                <p id="userDisplay">Guest User</p>
+                <button type="button" id="logoutButton" class="logout-button">
+                    Logout
+                </button>
             </div>
-            <span class="status">● System Ready</span>
-        </header>
+        </aside>
 
-        <section id="dashboardPage" class="page">
-            <div class="hero">
+        <!-- CONTENT -->
+        <main class="main-content">
+
+            <header class="topbar">
                 <div>
-                    <p class="eyebrow">WELCOME TO YOUR WORKSPACE</p>
-                    <h1>Understand your code.<br><span>Discover its DNA.</span></h1>
-                    <p>Analyze code patterns, inspect fingerprints, and compare snippets.</p>
-                    <button class="primary" data-goto="analyzer">Start Analyzing →</button>
-                </div>
-                <div class="hero-icon">🧬</div>
-            </div>
-
-            <div class="stats">
-                <div class="stat-card"><p>Total Analyses</p><h2 id="totalAnalyses">0</h2></div>
-                <div class="stat-card"><p>Unique Fingerprints</p><h2 id="uniqueFingerprints">0</h2></div>
-                <div class="stat-card"><p>Code Comparisons</p><h2 id="totalComparisons">0</h2></div>
-            </div>
-
-            <div class="panel">
-                <h3>Quick Start</h3>
-                <p>Open Code Analyzer to inspect one snippet, or Compare Code to calculate similarity between two snippets.</p>
-                <button class="secondary" data-goto="compare">Compare Two Snippets →</button>
-            </div>
-        </section>
-
-        <section id="analyzerPage" class="page hidden">
-            <div class="panel">
-                <h3>Code Analyzer</h3>
-                <p class="muted">Paste a code snippet and inspect its basic characteristics.</p>
-                <textarea id="codeInput" placeholder="Paste your code here..." spellcheck="false"></textarea>
-                <div class="button-row">
-                    <button id="loadSample" class="secondary">Load Sample</button>
-                    <button id="analyzeBtn" class="primary">Analyze Code</button>
-                    <button id="clearCode" class="secondary">Clear</button>
-                </div>
-                <p id="analyzerMessage" class="message"></p>
-            </div>
-
-            <div id="analysisResults" class="hidden">
-                <div class="stats">
-                    <div class="stat-card"><p>Characters</p><h2 id="charCount">0</h2></div>
-                    <div class="stat-card"><p>Lines</p><h2 id="lineCount">0</h2></div>
-                    <div class="stat-card"><p>Keywords</p><h2 id="keywordCount">0</h2></div>
-                </div>
-                <div class="panel">
-                    <h3>Analysis Results</h3>
-                    <div class="result-row"><span>Bracket Status</span><strong id="bracketStatus">-</strong></div>
-                    <div class="result-row"><span>Loop Count</span><strong id="loopCount">0</strong></div>
-                    <div class="result-row"><span>Fingerprint</span><code id="fingerprint"></code></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="comparePage" class="page hidden">
-            <div class="panel">
-                <h3>Code Similarity Checker</h3>
-                <p class="muted">Paste two snippets to estimate how similar their source text is.</p>
-                <label for="codeOne">Code Snippet A</label>
-                <textarea id="codeOne" placeholder="Paste first code snippet..." spellcheck="false"></textarea>
-
-                <label for="codeTwo">Code Snippet B</label>
-                <textarea id="codeTwo" placeholder="Paste second code snippet..." spellcheck="false"></textarea>
-
-                <div class="button-row">
-                    <button id="compareBtn" class="primary">Compare Code</button>
-                    <button id="compareSample" class="secondary">Load Test Samples</button>
-                    <button id="clearCompare" class="secondary">Clear</button>
+                    <h2 id="pageTitle">Code Analyzer</h2>
+                    <p>Understand your code. Improve your logic.</p>
                 </div>
 
-                <div id="compareResults" class="comparison hidden">
-                    <p class="muted">Estimated textual similarity</p>
-                    <div id="similarityPercent" class="percentage">0%</div>
-                    <div class="progress"><div id="similarityBar"></div></div>
-                    <h3 id="similarityLabel">Comparison Result</h3>
-                    <p id="compareDescription"></p>
-                    <p class="muted">This is a simple text comparison, not proof of plagiarism or algorithm equivalence.</p>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    Analyzer Workspace
                 </div>
-                <p id="compareMessage" class="message"></p>
-            </div>
-        </section>
+            </header>
 
-        <section id="historyPage" class="page hidden">
-            <div class="panel">
-                <div class="history-heading">
-                    <div>
-                        <h3>Analysis History</h3>
-                        <p class="muted">Analyses from this browser session.</p>
+            <!-- ANALYZER PAGE -->
+            <section id="analyzerPage" class="page-section">
+
+                <div class="welcome-section">
+                    <p class="eyebrow">CODE INTELLIGENCE PLATFORM</p>
+                    <h1>Discover the DNA of your code.</h1>
+                    <p>
+                        Select your programming language and topic to begin
+                        analyzing your code.
+                    </p>
+                </div>
+
+                <!-- LANGUAGE AND TOPIC -->
+                <div class="selection-grid">
+
+                    <div class="panel">
+                        <label for="languageSelect">Programming Language</label>
+
+                        <select id="languageSelect" required>
+                            <option value="c">C</option>
+                            <option value="cpp">C++</option>
+                            <option value="java">Java</option>
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                        </select>
+
+                        <p class="field-help">
+                            Choose the language used in your program.
+                        </p>
                     </div>
-                    <button id="clearHistory" class="secondary">Clear History</button>
-                </div>
-                <input id="historySearch" type="search" placeholder="Search by ID or fingerprint...">
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr><th>ID</th><th>Characters</th><th>Lines</th><th>Fingerprint</th></tr>
-                        </thead>
-                        <tbody id="historyBody"></tbody>
-                    </table>
-                </div>
-                <p id="emptyHistory" class="muted">No analyses yet. Analyze some code first.</p>
-            </div>
-        </section>
 
-        <footer>CODE DNA · DSA Mini Project · Demo Version</footer>
-    </main>
-</div>
+                    <div class="panel">
+                        <label for="topicSelect">Programming / DSA Topic</label>
 
-<script src="script.js"></script>
+                        <select id="topicSelect" required>
+                            <option value="general">General Code</option>
+                            <option value="arrays">Arrays</option>
+                            <option value="strings">Strings</option>
+                            <option value="linked-lists">Linked Lists</option>
+                            <option value="stacks">Stacks</option>
+                            <option value="queues">Queues</option>
+                            <option value="searching">Searching</option>
+                            <option value="sorting">Sorting</option>
+                            <option value="recursion">Recursion</option>
+                            <option value="trees">Trees and BST</option>
+                            <option value="graphs">Graphs</option>
+                            <option value="hashing">Hashing</option>
+                            <option value="dynamic-programming">
+                                Dynamic Programming
+                            </option>
+                            <option value="oop">Object-Oriented Programming</option>
+                            <option value="exception-handling">
+                                Exception Handling
+                            </option>
+                            <option value="multithreading">Multithreading</option>
+                            <option value="file-handling">File Handling</option>
+                        </select>
+
+                        <p class="field-help">
+                            Select the main topic your code implements.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- CODE EDITOR -->
+                <div class="panel code-panel">
+                    <div class="editor-heading">
+                        <div>
+                            <h3>Your Source Code</h3>
+                            <p>Paste your program in the editor below.</p>
+                        </div>
+
+                        <span id="languageBadge" class="language-badge">C</span>
+                    </div>
+
+                    <label for="codeInput">Source Code</label>
+
+                    <textarea
+                        id="codeInput"
+                        spellcheck="false"
+                        placeholder="Paste your C, C++, Java, Python, or JavaScript code here..."
+                        rows="16"
+                        required
+                    ></textarea>
+
+                    <div class="editor-footer">
+                        <span id="lineCount">Lines: 0</span>
+                        <span id="characterCount">Characters: 0</span>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button type="button" id="analyzeButton">
+                            Analyze Code
+                        </button>
+
+                        <button type="button" id="clearButton" class="secondary-button">
+                            Clear Code
+                        </button>
+                    </div>
+
+                    <p id="analysisMessage" class="message" role="status"></p>
+                </div>
+
+                <!-- ANALYSIS RESULTS -->
+                <section id="resultsSection" class="results-section hidden">
+                    <div class="results-heading">
+                        <div>
+                            <p class="eyebrow">ANALYSIS REPORT</p>
+                            <h2>Code Analysis Results</h2>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <p>Language</p>
+                            <h3 id="resultLanguage">—</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Selected Topic</p>
+                            <h3 id="resultTopic">—</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Lines of Code</p>
+                            <h3 id="resultLines">0</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Estimated Time Complexity</p>
+                            <h3 id="timeComplexity">Pending</h3>
+                        </div>
+
+                        <div class="stat-card">
+                            <p>Estimated Space Complexity</p>
+                            <h3 id="spaceComplexity">Pending</h3>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <h3>Analysis Details</h3>
+                        <div id="analysisDetails" aria-live="polite">
+                            Analysis details will appear here.
+                        </div>
+                    </div>
+
+                    <p class="field-help">
+                        Complexity values are estimates. Their accuracy depends
+                        on the analysis logic and the structure of your program.
+                    </p>
+                </section>
+
+            </section>
+
+            <!-- HISTORY PAGE -->
+            <section id="historyPage" class="page-section hidden">
+                <div class="welcome-section">
+                    <p class="eyebrow">YOUR WORKSPACE</p>
+                    <h1>Analysis History</h1>
+                    <p>Review analyses saved during your session.</p>
+                </div>
+
+                <div class="panel">
+                    <div class="editor-heading">
+                        <h3>Recent Analyses</h3>
+                        <button type="button" id="clearHistoryButton"
+                                class="secondary-button">
+                            Clear History
+                        </button>
+                    </div>
+
+                    <div id="historyList">
+                        <p>No analyses yet. Analyze some code to get started.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABOUT PAGE -->
+            <section id="aboutPage" class="page-section hidden">
+                <div class="welcome-section">
+                    <p class="eyebrow">ABOUT THE PROJECT</p>
+                    <h1>What is CODE DNA?</h1>
+                    <p>
+                        CODE DNA is a learning-focused code analysis project
+                        designed to help programmers understand their source code.
+                    </p>
+                </div>
+
+                <div class="panel">
+                    <h3>Supported Languages</h3>
+                    <p>C, C++, Java, Python, and JavaScript.</p>
+
+                    <h3>Supported Topics</h3>
+                    <p>
+                        Arrays, strings, linked lists, stacks, queues, searching,
+                        sorting, recursion, trees, graphs, hashing, dynamic
+                        programming, OOP, exception handling, multithreading,
+                        and file handling.
+                    </p>
+
+                    <h3>Project Goal</h3>
+                    <p>
+                        Help students explore code structure, common programming
+                        patterns, and estimated time and space complexity.
+                    </p>
+                </div>
+            </section>
+
+            <footer class="app-footer">
+                <p>CODE DNA · Code Intelligence for Learners</p>
+            </footer>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
+```
