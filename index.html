@@ -1,0 +1,250 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0b14">
+  <meta name="description" content="CODE DNA analyzes and compares source code using structural checks and complexity estimates.">
+  <title>CODE DNA | Code Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-icon">CD</div>
+        <div>
+          <h2>CODE DNA</h2>
+          <small>Intelligent Code Analysis</small>
+        </div>
+      </div>
+
+      <nav class="navigation">
+        <button class="nav active" data-page="editorPage">⌘ Code Analyzer</button>
+        <button class="nav" data-page="comparePage">⇄ Code Comparator</button>
+        <button class="nav" data-page="historyPage">◷ Analysis History</button>
+        <button class="nav" data-page="aboutPage">ⓘ About CODE DNA</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <span class="status-dot"></span> Analysis mode only
+        <p>No code execution required.</p>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div>
+          <h1 id="pageTitle">Code Analyzer</h1>
+          <p>Understand your code. Discover its structure.</p>
+        </div>
+        <span class="badge">CODE DNA 3.0</span>
+      </header>
+
+      <section id="editorPage" class="page">
+        <div class="panel editor-panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Source Code</h2>
+              <p>Paste or write your program below.</p>
+            </div>
+            <span id="fileName">main.java</span>
+          </div>
+
+          <div class="toolbar">
+            <label for="languageSelect">Language</label>
+            <select id="languageSelect">
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+
+            <label for="topicSelect">Topic</label>
+            <select id="topicSelect">
+              <option value="general">General</option>
+              <option value="arrays">Arrays</option>
+              <option value="strings">Strings</option>
+              <option value="linked-lists">Linked Lists</option>
+              <option value="stacks">Stacks</option>
+              <option value="queues">Queues</option>
+              <option value="searching">Searching</option>
+              <option value="sorting">Sorting</option>
+              <option value="recursion">Recursion</option>
+              <option value="trees">Trees</option>
+              <option value="graphs">Graphs</option>
+              <option value="hashing">Hashing</option>
+              <option value="dynamic-programming">Dynamic Programming</option>
+              <option value="oop">OOP</option>
+              <option value="exception-handling">Exception Handling</option>
+              <option value="multithreading">Multithreading</option>
+              <option value="file-handling">File Handling</option>
+            </select>
+
+            <button id="sampleButton" class="button secondary" type="button">
+              Load Sample
+            </button>
+          </div>
+
+          <div class="code-editor">
+            <pre id="lineNumbers" aria-hidden="true">1</pre>
+            <textarea
+              id="codeInput"
+              spellcheck="false"
+              aria-label="Source code editor"
+              placeholder="Paste your Java, Python, C, C++, or JavaScript code here..."
+            ></textarea>
+          </div>
+
+          <div class="editor-footer">
+            <span id="lineCount">1 lines</span>
+            <span id="characterCount">0 characters</span>
+          </div>
+
+          <div class="action-row">
+            <button id="analyzeButton" class="button primary" type="button">
+              Analyze Code
+            </button>
+            <button id="clearButton" class="button secondary" type="button">
+              Clear Editor
+            </button>
+          </div>
+        </div>
+
+        <section id="resultsSection" class="results-section" hidden>
+          <div class="section-heading">
+            <div>
+              <h2>Analysis Results</h2>
+              <p>Estimates and structural observations about your code.</p>
+            </div>
+            <span class="badge">Analysis Complete</span>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <span>Estimated Time Complexity</span>
+              <h3 id="timeComplexity">—</h3>
+            </article>
+            <article class="stat-card">
+              <span>Estimated Space Complexity</span>
+              <h3 id="spaceComplexity">—</h3>
+            </article>
+            <article class="stat-card">
+              <span>Lines of Code</span>
+              <h3 id="resultLines">0</h3>
+            </article>
+            <article class="stat-card">
+              <span>Code Fingerprint</span>
+              <h3 id="fingerprint">—</h3>
+            </article>
+          </div>
+
+          <div class="panel analysis-panel">
+            <h3>Code Insights</h3>
+            <div id="analysisDetails"></div>
+            <p id="analysisMessage"></p>
+            <p class="notice">
+              Complexity and structural checks are estimates. They do not replace
+              a compiler, complete parser, or manual algorithm analysis.
+            </p>
+          </div>
+        </section>
+      </section>
+
+      <section id="comparePage" class="page" hidden>
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Code Comparator</h2>
+              <p>Compare two code samples without executing them.</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <label for="compareLanguage">Language</label>
+            <select id="compareLanguage">
+              <option value="java">Java</option>
+              <option value="python">Python</option>
+              <option value="c">C</option>
+              <option value="cpp">C++</option>
+              <option value="javascript">JavaScript</option>
+            </select>
+          </div>
+
+          <div class="comparison-grid">
+            <div class="comparison-card">
+              <label for="compareCodeA">Code A</label>
+              <textarea id="compareCodeA" spellcheck="false"
+                placeholder="Paste the first code sample..."></textarea>
+            </div>
+            <div class="comparison-card">
+              <label for="compareCodeB">Code B</label>
+              <textarea id="compareCodeB" spellcheck="false"
+                placeholder="Paste the second code sample..."></textarea>
+            </div>
+          </div>
+
+          <div class="action-row">
+            <button id="compareButton" class="button primary" type="button">
+              Compare Code
+            </button>
+          </div>
+        </div>
+
+        <div id="compareResults" class="panel comparison-results" aria-live="polite">
+          Your comparison results will appear here.
+        </div>
+      </section>
+
+      <section id="historyPage" class="page" hidden>
+        <div class="panel">
+          <div class="panel-heading">
+            <div>
+              <h2>Analysis History</h2>
+              <p>Review code samples analyzed in this browser.</p>
+            </div>
+            <button id="clearHistoryButton" class="button secondary" type="button">
+              Clear History
+            </button>
+          </div>
+          <div id="historyList">No saved code yet.</div>
+        </div>
+      </section>
+
+      <section id="aboutPage" class="page" hidden>
+        <div class="panel">
+          <h2>About CODE DNA</h2>
+          <p>
+            CODE DNA is a student project designed to help learners explore
+            source code structure, compare implementations, and understand
+            basic algorithm complexity.
+          </p>
+          <h3>Supported Languages</h3>
+          <p>Java · Python · C · C++ · JavaScript</p>
+          <h3>Features</h3>
+          <ul>
+            <li>Source code analysis</li>
+            <li>Estimated time and space complexity</li>
+            <li>Basic bracket and structure checks</li>
+            <li>Code fingerprinting</li>
+            <li>Side-by-side code comparison</li>
+            <li>Local analysis history</li>
+          </ul>
+          <p class="notice">
+            CODE DNA does not execute programs. Results are educational
+            estimates and should be reviewed by the programmer.
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        CODE DNA · Learn the logic. Understand the structure.
+      </footer>
+    </main>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
