@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*.exe
+*.db
+*.db-journal
+.env
+frontend/.env
+node_modules/
+dist/
+.venv/
+venv/
